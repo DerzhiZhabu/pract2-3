@@ -3,6 +3,8 @@
 #include <string>
 #include <sstream>
 #include <filesystem>
+#include <thread>
+#include <chrono>
 #include "structures.h"
 
 
@@ -38,6 +40,7 @@ int isunlocked(const filesystem::path& directory, const std::string& tableName) 
     int value = 1;
     file >> value;
 
+
     file.close();
 
     return value;
@@ -45,7 +48,10 @@ int isunlocked(const filesystem::path& directory, const std::string& tableName) 
 
 void writeToCsv(const filesystem::path& filename, List<List<string>>& data, string table_name, string& schem_name) {
     filesystem::path filePath = ".";
-    while(isunlocked(filePath/schem_name/table_name, table_name) == 0) std::cout << "Waiting for unlock" << endl;
+    while(!isunlocked(filePath/schem_name/table_name, table_name)){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "waiting" << endl;
+    }
     lock(filePath/ schem_name/table_name, table_name);
 
     std::ofstream file(filename, std::ios::out | std::ios::trunc);
@@ -67,7 +73,10 @@ void writeToCsv(const filesystem::path& filename, List<List<string>>& data, stri
 void readFromCsv(const filesystem::path& filename, List<List<string>>& data, string table_name, string& schem_name) {
 
     filesystem::path filePath = ".";
-    while(!isunlocked(filePath/schem_name/table_name, table_name)) std::cout << "Waiting for unlock" << endl;
+    while(!isunlocked(filePath/schem_name/table_name, table_name)){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "waiting" << std::endl;
+    }
     lock(filePath/ schem_name/table_name, table_name);
 
 
@@ -94,7 +103,10 @@ void readFromCsv(const filesystem::path& filename, List<List<string>>& data, str
 void appendToCsv(const filesystem::path& filename, List<string>& newRow, string table_name, string& schem_name) {
 
     filesystem::path filePath = ".";
-    while(!isunlocked(filePath/schem_name/table_name, table_name)) std::cout << "Waiting for unlock" << endl;
+    while(!isunlocked(filePath/schem_name/table_name, table_name)){
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::cout << "waiting" << std::endl;
+    }
     lock(filePath/ schem_name/table_name, table_name);
     
     std::ofstream file(filename, std::ios::app);

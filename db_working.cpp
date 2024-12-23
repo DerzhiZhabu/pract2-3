@@ -22,8 +22,6 @@ string queue_work(string& data){
 
     string res = console_parse(schem_name, tables, tables_names, limit, data);
 
-    cout << res << endl;
-
     return res;
 }
 
@@ -60,7 +58,7 @@ string console_parse(string& schem_name, HashTable<List<string>>& tables, List<s
             }
             else if (command == "END"){
                 ended = false;
-                break;
+                return "END";
             }
             else{
                 throw runtime_error("Unknown command");

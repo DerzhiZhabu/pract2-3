@@ -24,21 +24,29 @@ void signalHandler(int signum) {
 
 // Обработчик клиента
 void handleClient(int clientSocket) {
-    const int BUFFER_SIZE = 1024;
-    char buffer[BUFFER_SIZE];
+    bool waiting = true;
 
-    // Чтение данных от клиента
-    ssize_t bytesRead = read(clientSocket, buffer, BUFFER_SIZE);
-    if (bytesRead > 0) {
-        buffer[bytesRead -1 ] = '\0';
-        std::cout << "Получено сообщение: " << buffer << std::endl;
+    while(waiting){
+        const int BUFFER_SIZE = 1024;
+        char buffer[BUFFER_SIZE];
 
-        std::string queury(buffer);
+        // Чтение данных от клиента
+        ssize_t bytesRead = read(clientSocket, buffer, BUFFER_SIZE);
+        if (bytesRead > 0) {
+            buffer[bytesRead -1 ] = '\0';
+            std::cout << "Получено сообщение: " << buffer << std::endl;
 
-        std::string response = queue_work(queury);
+            std::string queury(buffer);
 
-        // Отправка ответа
-        send(clientSocket, response.c_str(), response.size(), 0);
+            if(queury == "END") waiting = false;
+
+            std::string response = queue_work(queury);
+
+            response += '\n';
+
+            // Отправка ответа
+            send(clientSocket, response.c_str(), response.size(), 0);
+        }
     }
 
     // Закрываем соединение
