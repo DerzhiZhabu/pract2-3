@@ -1,8 +1,0 @@
-{
-    "name": "Schem 1",
-    "tuples_limit": 1000,
-    "structure": {
-    "table1": ["col1", "col2", "col3", "col4"],
-    "table2": ["col1", "col2"]
-    }
-}
