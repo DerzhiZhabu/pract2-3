@@ -1,0 +1,1 @@
+g++ server.cpp dbms/json_parse.cpp dbms/db_working.cpp dbms/csv.cpp -o server

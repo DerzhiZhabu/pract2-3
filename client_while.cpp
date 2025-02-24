@@ -3,45 +3,49 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <string>
-#include <thread>  // Для std::thread
+#include <thread>
+#include <barrier>
+#include <mutex>
 
-// Функция для работы клиента
-void client_function(const std::string& client_name) {
-    // Создание сокета
+using namespace std;
+
+barrier b(4);
+
+void client_function(const string& client_name) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock == -1) {
-        std::cerr << client_name << ": Ошибка создания сокета!" << std::endl;
+        cerr << client_name << ": Ошибка создания сокета!" << endl;
         return;
     }
 
-    // Установка адреса сервера
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(7432);
     if (inet_pton(AF_INET, "127.0.0.1", &serverAddr.sin_addr) <= 0) {
-        std::cerr << client_name << ": Ошибка преобразования IP-адреса!" << std::endl;
+        cerr << client_name << ": Ошибка преобразования IP-адреса!" << endl;
         close(sock);
         return;
     }
 
 
     if (connect(sock, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-        std::cerr << client_name << ": Ошибка подключения к серверу!" << std::endl;
+        cerr << client_name << ": Ошибка подключения к серверу!" << endl;
         close(sock);
         return;
     }
 
-    std::cout << client_name << ": Подключение к серверу успешно установлено!" << std::endl;
+    cout << client_name << ": Подключение к серверу успешно установлено!" << endl;
 
-    std::string message = "SELECT table1.* FROM table1\n";
+    string message = "SELECT table1.* FROM table1\n";
 
     while (true) {
+        b.arrive_and_wait();
         int bytesSent = send(sock, message.c_str(), message.length(), 0);
         if (bytesSent < 0) {
-            std::cerr << client_name << ": Ошибка отправки данных!" << std::endl;
+            cerr << client_name << ": Ошибка отправки данных!" << endl;
             break;
         }
-        std::cout << client_name << ": Сообщение отправлено: " << message;
+        cout << client_name << ": Сообщение отправлено: " << message;
 
         sleep(1);
     }
@@ -50,13 +54,15 @@ void client_function(const std::string& client_name) {
 }
 
 int main() {
-    // Создаем два потока для двух клиентов
-    std::thread client1(client_function, "Клиент 1");
-    std::thread client2(client_function, "Клиент 2");
+    thread client1(client_function, "Клиент 1");
+    thread client2(client_function, "Клиент 2");
+    thread client3(client_function, "Клиент 3");
+    thread client4(client_function, "Клиент 4");
 
-    // Ожидаем завершения работы потоков
     client1.join();
     client2.join();
+    client3.join();
+    client4.join();
 
     return 0;
 }
